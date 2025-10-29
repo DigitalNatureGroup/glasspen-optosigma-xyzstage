@@ -21,9 +21,9 @@ def main():
     # COM5に接続
     stages.connect(portname='COM5')
     stages.initialize()
-    stages.set_speed(1, 1000, 10000, 500)
-    stages.set_speed(2, 1000, 10000, 500)
-    stages.set_speed(3, 1000, 10000, 500)
+    stages.set_speed(1, 10000, 100000, 200) # 最低速度1～500000 最高速度1～500000 加減速時間0～1000
+    stages.set_speed(2, 10000, 100000, 200)
+    stages.set_speed(3, 10000, 100000, 200)
 
     # 現在位置を確認
     print("\nCurrent positions:")
