@@ -65,13 +65,11 @@ def main():
     print(f"Y-axis (stage 2): {positions[1]} µm")
     print(f"Z-axis (stage 3): {positions[2]} µm")
 
-    # 元の位置に戻る
+    # 元の位置に戻る（各軸を個別に戻す方が安全）
     print("\nReturning to original positions...")
-    stages.move(stage=1, amount=-1000, wait_for_finish=False)
-    time.sleep(0.00001)  # bad timingエラー回避
-    stages.move(stage=2, amount=-1000, wait_for_finish=False)
-    time.sleep(0.00001)
-    stages.move(stage=3, amount=-1000, wait_for_finish=False)
+    stages.move(stage=1, amount=-1000, wait_for_finish=True)
+    stages.move(stage=2, amount=-1000, wait_for_finish=True)
+    stages.move(stage=3, amount=-1000, wait_for_finish=True)
 
     # 移動完了を待つ
     while stages.is_busy():
