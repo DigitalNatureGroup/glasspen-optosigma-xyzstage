@@ -25,6 +25,11 @@ def main():
     stages.connect(portname='COM5')
     print("Connected successfully!")
 
+    # 原点復帰（これにより位置が確定し、get_position()が安全に呼べる）
+    print("\nInitializing stages (returning to origin)...")
+    stages.initialize()
+    print("Initialization complete!")
+
     # 現在位置を確認
     print("\nCurrent positions:")
     positions = stages.get_position()
