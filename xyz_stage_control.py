@@ -40,18 +40,9 @@ def main():
     # テスト動作：3軸を同時に動かす
     print("\n=== Starting test movements ===\n")
 
-    # 3軸同時に+1mm移動
+    # 3軸同時に+1mm移動（amountにリストを渡す）
     print("Moving all axes +1000 µm simultaneously...")
-    stages.move(stage=1, amount=1000, wait_for_finish=False)
-    time.sleep(0.00001)  # bad timingエラー回避
-    stages.move(stage=2, amount=1000, wait_for_finish=False)
-    time.sleep(0.00001)
-    stages.move(stage=3, amount=1000, wait_for_finish=False)
-
-    # 移動完了を待つ
-    print("Waiting for movements to complete...")
-    while stages.is_busy():
-        time.sleep(0.1)
+    stages.move(amount=[1000, 1000, 1000], wait_for_finish=True)
     print("All axes movement complete")
     time.sleep(0.5)
 
@@ -64,15 +55,7 @@ def main():
 
     # 元の位置に戻る（3軸同時に）
     print("\nReturning to original positions...")
-    stages.move(stage=1, amount=-1000, wait_for_finish=False)
-    time.sleep(0.00001)  # bad timingエラー回避
-    stages.move(stage=2, amount=-1000, wait_for_finish=False)
-    time.sleep(0.00001)
-    stages.move(stage=3, amount=-1000, wait_for_finish=False)
-
-    # 移動完了を待つ
-    while stages.is_busy():
-        time.sleep(0.1)
+    stages.move(amount=[-1000, -1000, -1000], wait_for_finish=True)
     print("All axes returned to starting position")
 
     # 最終位置確認
