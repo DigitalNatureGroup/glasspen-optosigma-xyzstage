@@ -4,11 +4,9 @@
 X, Y, Z軸を順番に動かす簡単なテスト
 """
 
-import sys
-sys.path.append('./pyOptoSigma')
-
-from pyOptoSigma import Session, Controllers, Stages
 import time
+
+from pyOptoSigma.pyOptoSigma import Controllers, Session, Stages
 
 def main():
     # SHOT_304GS コントローラーで3軸制御のセッションを作成
@@ -21,14 +19,11 @@ def main():
     stages.append_stage(Stages.OSMS26_100)  # Z軸
 
     # COM5に接続
-    print("Connecting to COM5...")
     stages.connect(portname='COM5')
-    print("Connected successfully!")
-
-    # 原点復帰（これにより位置が確定し、get_position()が安全に呼べる）
-    print("\nInitializing stages (returning to origin)...")
     stages.initialize()
-    print("Initialization complete!")
+    stages.set_speed(1, 1000, 10000, 500)
+    stages.set_speed(2, 1000, 10000, 500)
+    stages.set_speed(3, 1000, 10000, 500)
 
     # 現在位置を確認
     print("\nCurrent positions:")
