@@ -17,13 +17,12 @@ def main():
     stages.append_stage(Stages.OSMS26_100)  # X軸
     stages.append_stage(Stages.OSMS26_100)  # Y軸
     stages.append_stage(Stages.OSMS26_100)  # Z軸
-
     # COM5に接続
     stages.connect(portname='COM5')
     stages.initialize()
-    stages.set_speed(1, 500, 5000, 200) # 最低速度1～500000 最高速度1～500000 加減速時間0～1000
-    stages.set_speed(2, 500, 5000, 200)
-    stages.set_speed(3, 500, 5000, 200)
+    stages.set_speed(1, 1000, 10000, 500)
+    stages.set_speed(2, 1000, 10000, 500)
+    stages.set_speed(3, 1000, 10000, 500)
 
     # 現在位置を確認
     print("\nCurrent positions:")
@@ -36,33 +35,7 @@ def main():
     print("All axes movement complete")
     time.sleep(0.5)
 
-    # 円弧の中心と半径 (PoC 用にハードコード)
-    center_x_um = 85576.0
-    center_y_um = 49966.0
-
-        # 現在位置を再確認
-    print("\nPositions after movement:")
-    positions = stages.get_position()
-    print(f"X-axis (stage 1): {positions[0]} µm")
-    print(f"Y-axis (stage 2): {positions[1]} µm")
-    print(f"Z-axis (stage 3): {positions[2]} µm")
-
-
-    stages.set_speed(1, 4000, 5000, 200) # 最低速度1～500000 最高速度1～500000 加減速時間0～1000
-    stages.set_speed(2, 4000, 5000, 200)
-    stages.set_speed(3, 4000, 5000, 200)
-
-
-    # 円弧補間コマンドをそのまま送信 (半径 1 cm ≒ 5000 pulses)
-    # 90度の円弧: 終点 (+0, +0), 中心オフセット (+5000, 0)
-    arc_command = "E:W+P0+P0+P5000+P0"
-    print(f"Sending arc command: {arc_command}")
-    stages.move(amount=[0, 0, -30000], wait_for_finish=False)
-    stages._Session__send(arc_command)  # type: ignore[attr-defined]
-    stages._Session__send("G:")  # type: ignore[attr-defined]
-    stages._Session__wait_for_ready()  # type: ignore[attr-defined]
-    time.sleep(0.2)
-
+    stages.move(amount=[0, -50000, -40000], wait_for_finish=True)
 
 
     # 最終位置確認

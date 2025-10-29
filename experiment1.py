@@ -7,6 +7,29 @@ X, Y, Z軸を順番に動かす簡単なテスト
 import time
 
 from pyOptoSigma.pyOptoSigma import Controllers, Session, Stages
+import serial
+
+
+shatter = serial.Serial('COM4', 115200, timeout=1)
+
+LABEL_TO_SIGNAL = {
+    "OPEN": "LOW",   # 開く = 低レベル
+    "CLOSE": "HIGH", # 閉じる = 高レベル
+}
+
+
+def send_command(label: str):
+    """操作ラベル（OPEN/CLOSE）でArduinoへ送信"""
+    normalized_label = label.strip().upper()
+    if normalized_label not in LABEL_TO_SIGNAL:
+        raise ValueError("OPEN または CLOSE を指定してください。")
+
+    actual_cmd = LABEL_TO_SIGNAL[normalized_label]
+    shatter.write((actual_cmd + '\n').encode('utf-8'))
+    time.sleep(0.1)
+    response = shatter.readline().decode('utf-8', errors='ignore').strip()
+    print(f"送信: {normalized_label}（実信号: {actual_cmd}）")
+    print(f"Arduino: {response}")
 
 def main():
     # SHOT_304GS コントローラーで3軸制御のセッションを作成
@@ -17,13 +40,12 @@ def main():
     stages.append_stage(Stages.OSMS26_100)  # X軸
     stages.append_stage(Stages.OSMS26_100)  # Y軸
     stages.append_stage(Stages.OSMS26_100)  # Z軸
-
     # COM5に接続
     stages.connect(portname='COM5')
     stages.initialize()
-    stages.set_speed(1, 500, 5000, 200) # 最低速度1～500000 最高速度1～500000 加減速時間0～1000
-    stages.set_speed(2, 500, 5000, 200)
-    stages.set_speed(3, 500, 5000, 200)
+    stages.set_speed(1, 1000, 10000, 500)
+    stages.set_speed(2, 1000, 10000, 500)
+    stages.set_speed(3, 1000, 10000, 500)
 
     # 現在位置を確認
     print("\nCurrent positions:")
@@ -36,34 +58,22 @@ def main():
     print("All axes movement complete")
     time.sleep(0.5)
 
-    # 円弧の中心と半径 (PoC 用にハードコード)
-    center_x_um = 85576.0
-    center_y_um = 49966.0
+    stages.move(amount=[0, -50000, -40000], wait_for_finish=True)
 
-        # 現在位置を再確認
-    print("\nPositions after movement:")
-    positions = stages.get_position()
-    print(f"X-axis (stage 1): {positions[0]} µm")
-    print(f"Y-axis (stage 2): {positions[1]} µm")
-    print(f"Z-axis (stage 3): {positions[2]} µm")
+    time.sleep(0.5)
 
+    stages.set_speed(3, 1000, 12000, 200)
 
-    stages.set_speed(1, 4000, 5000, 200) # 最低速度1～500000 最高速度1～500000 加減速時間0～1000
-    stages.set_speed(2, 4000, 5000, 200)
-    stages.set_speed(3, 4000, 5000, 200)
+    send_command("OPEN")
+    time.sleep(0.5)
+
+    stages.move(amount=[0, 0, -30000], wait_for_finish=True)
+
+    send_command("CLOSE")
+    time.sleep(0.5)
 
 
-    # 円弧補間コマンドをそのまま送信 (半径 1 cm ≒ 5000 pulses)
-    # 90度の円弧: 終点 (+0, +0), 中心オフセット (+5000, 0)
-    arc_command = "E:W+P0+P0+P5000+P0"
-    print(f"Sending arc command: {arc_command}")
-    stages.move(amount=[0, 0, -30000], wait_for_finish=False)
-    stages._Session__send(arc_command)  # type: ignore[attr-defined]
-    stages._Session__send("G:")  # type: ignore[attr-defined]
-    stages._Session__wait_for_ready()  # type: ignore[attr-defined]
-    time.sleep(0.2)
-
-
+    stages.initialize()
 
     # 最終位置確認
     print("\nFinal positions:")
