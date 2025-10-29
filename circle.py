@@ -4,9 +4,11 @@
 X, Y, Z軸を順番に動かす簡単なテスト
 """
 
-import time
+import sys
+sys.path.append('./pyOptoSigma')
 
-from pyOptoSigma.pyOptoSigma import Controllers, Session, Stages
+from pyOptoSigma import Session, Controllers, Stages
+import time
 
 def main():
     # SHOT_304GS コントローラーで3軸制御のセッションを作成
@@ -35,21 +37,37 @@ def main():
     print(f"Y-axis (stage 2): {positions[1]} µm")
     print(f"Z-axis (stage 3): {positions[2]} µm")
 
-    # テスト動作：3軸を同時に動かす
-    print("\n=== Starting test movements ===\n")
+    # 円弧の中心と半径 (PoC 用にハードコード)
+    center_x_um = 85576.0
+    center_y_um = 49966.0
+    radius_um = 50000.0  # 50 mm (5 cm)
+    start_x_um = center_x_um - radius_um
+    start_y_um = center_y_um
 
-    # 3軸同時に+1mm移動（amountにリストを渡す）
-    print("Moving all axes +1000 µm simultaneously...")
-    stages.move(amount=[10000000, 1000000, 1000000], wait_for_finish=True)
-    print("All axes movement complete")
-    time.sleep(0.5)
+    # Z は現在値を維持
+    z_um = positions[2]
 
-    # 現在位置を再確認
+    print(f"\nMoving to arc start: X={start_x_um} µm, Y={start_y_um} µm")
+    stages.move(amount=[start_x_um, start_y_um, z_um], absolute=True, wait_for_finish=True)
+    time.sleep(0.2)
+
+        # 現在位置を再確認
     print("\nPositions after movement:")
     positions = stages.get_position()
     print(f"X-axis (stage 1): {positions[0]} µm")
     print(f"Y-axis (stage 2): {positions[1]} µm")
     print(f"Z-axis (stage 3): {positions[2]} µm")
+
+    # 円弧補間コマンドをそのまま送信 (半径 1 cm ≒ 5000 pulses)
+    # 90度の円弧: 終点 (+5000, +5000), 中心オフセット (+5000, 0)
+    arc_command = "E:W+P5000+P5000+P5000+P0"
+    print(f"Sending arc command: {arc_command}")
+    stages._Session__send(arc_command)  # type: ignore[attr-defined]
+    stages._Session__send("G:")  # type: ignore[attr-defined]
+    stages._Session__wait_for_ready()  # type: ignore[attr-defined]
+    time.sleep(0.2)
+
+
 
     # 最終位置確認
     print("\nFinal positions:")
